@@ -52,6 +52,9 @@ static void ConfigureServices(IServiceCollection services)
     services.AddTransient<IAuthService, AuthService>();
     services.AddTransient<IMediaService, MediaService>();
     services.AddTransient<IContactService, ContactService>();
+    services.AddTransient<IRealisationService, RealisationService>();
+    services.AddTransient<IServiceService, ServiceService>();
+    services.AddTransient<IHoraireService, HoraireService>();
     services.AddTransient<MinioService>();
     services.AddTransient<MailService>();
 
