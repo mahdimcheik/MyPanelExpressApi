@@ -1,0 +1,15 @@
+# Secrets — jamais versionnés
+.env
+*.env.local
+
+# Build
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+
+# Visual Studio
+.vs/
+*.user
+*.suo

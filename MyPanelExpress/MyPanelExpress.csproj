@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>cb63eaf7-c915-4eec-a54e-ad3e412bc567</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <!-- RazorLight compiles the .cshtml mail templates with Roslyn at runtime and needs the
+         reference assemblies listed in the deps file. Without this, CompileRenderAsync throws. -->
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+    <!-- Swagger's IncludeXmlComments is a silent no-op unless the XML doc file is generated. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.4" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.4">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.4">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
+    <!-- Swashbuckle pinned to 7.x. It compiles against Microsoft.OpenApi 1.6.x; adding
+         Microsoft.AspNetCore.OpenApi (which pulls Microsoft.OpenApi 2.x) breaks the build. -->
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.2" />
+    <PackageReference Include="Minio" Version="6.0.5" />
+    <PackageReference Include="RazorLight" Version="2.3.1" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Templates\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

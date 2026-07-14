@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgres:16
+    container_name: mpe-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio
+    container_name: mpe-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESSKEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRETKEY}
+    ports:
+      - "127.0.0.1:9000:9000" # API S3
+      - "127.0.0.1:9001:9001" # console web
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Boîte mail de développement : capture les mails du formulaire de contact
+  # sans toucher à un vrai serveur SMTP. Interface : http://localhost:8025
+  mailpit:
+    image: axllent/mailpit
+    container_name: mpe-mailpit
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1025:1025" # SMTP
+      - "127.0.0.1:8025:8025" # interface web
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: mpe-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@admin.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-root}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "127.0.0.1:5050:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  minio_data:

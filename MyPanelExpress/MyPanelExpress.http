@@ -1,0 +1,30 @@
+@MyPanelExpress_HostAddress = http://localhost:5196
+
+### Connexion de l'administrateur
+# @name login
+POST {{MyPanelExpress_HostAddress}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@mypanelexpress.com",
+  "password": "Password123!"
+}
+
+### Utilisateur authentifié
+@token = {{login.response.body.data.token}}
+
+GET {{MyPanelExpress_HostAddress}}/auth/me
+Authorization: Bearer {{token}}
+
+### Formulaire de contact (public)
+POST {{MyPanelExpress_HostAddress}}/contact
+Content-Type: application/json
+
+{
+  "nom": "Ahmed Ben Ali",
+  "societe": "Enseignes du Sud",
+  "telephone": "0612345678",
+  "email": "ahmed@example.com",
+  "sujet": "Demande de devis",
+  "message": "Bonjour, je souhaite un devis pour 3 panneaux rigides 2x1m."
+}
