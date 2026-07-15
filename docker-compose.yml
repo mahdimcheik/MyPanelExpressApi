@@ -27,6 +27,8 @@ services:
     environment:
       ASPNETCORE_URLS: ${ASPNETCORE_URLS}
       JWT_KEY: ${JWT_KEY}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       API_BACK_URL: ${API_BACK_URL}
       API_FRONT_URL: ${API_FRONT_URL}
       DB_PORT: ${DB_PORT}

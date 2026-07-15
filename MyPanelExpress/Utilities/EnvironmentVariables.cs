@@ -62,7 +62,7 @@ public static class EnvironmentVariables
         GetEnvVar("CONTACT_RECIPIENT_MAIL", "contact@mypanelexpress.com");
 
     // minio
-    public const string DEV_MINIO_SECRETKEY = "minioadmin";
+    public const string DEV_MINIO_SECRETKEY = "dev-only-minio-secret-change-me";
     public static string MINIO_ENDPOINT => GetEnvVar("MINIO_ENDPOINT", "files.bonprof.fr");
     public static string MINIO_BUCKETNAME => GetEnvVar("MINIO_BUCKETNAME", "mypanelexpress");
     public static string MINIO_ACCESSKEY => GetEnvVar("MINIO_ACCESSKEY", "minioadmin");
