@@ -1,0 +1,44 @@
+name: CD
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+
+      - name: Build the Docker image
+        run: |
+          docker build . --file BonProf/Dockerfile \
+            --build-arg APP_VERSION=${{ steps.version.outputs.version }} \
+            --tag mahdimcheik/bonprof:${{ steps.version.outputs.version }} \
+            --tag mahdimcheik/bonprof:latest
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Push image to Docker Hub
+        run: docker push --all-tags mahdimcheik/bonprof
+
+      - name: Deploy on VPS via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/mypanelexpress/back-end
+            docker pull mahdimcheik/mypanelexpress:latest
+            docker compose up -d --force-recreate
