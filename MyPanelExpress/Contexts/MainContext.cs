@@ -17,6 +17,7 @@ public class MainContext(DbContextOptions<MainContext> options)
     public DbSet<Service> Services { get; set; }
     public DbSet<ServiceImage> ServiceImages { get; set; }
     public DbSet<Horaire> Horaires { get; set; }
+    public DbSet<Parametres> Parametres { get; set; }
 
     /// <summary>
     /// Date figée pour les lignes semées : EF exige des valeurs déterministes dans HasData.

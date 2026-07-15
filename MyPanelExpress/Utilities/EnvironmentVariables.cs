@@ -63,13 +63,13 @@ public static class EnvironmentVariables
 
     // minio
     public const string DEV_MINIO_SECRETKEY = "minioadmin";
-    public static string MINIO_ENDPOINT => GetEnvVar("MINIO_ENDPOINT", "localhost:9000");
+    public static string MINIO_ENDPOINT => GetEnvVar("MINIO_ENDPOINT", "files.bonprof.fr");
     public static string MINIO_BUCKETNAME => GetEnvVar("MINIO_BUCKETNAME", "mypanelexpress");
     public static string MINIO_ACCESSKEY => GetEnvVar("MINIO_ACCESSKEY", "minioadmin");
     public static string MINIO_SECRETKEY => GetEnvVar("MINIO_SECRETKEY", DEV_MINIO_SECRETKEY);
 
     /// <summary>Faux en local : le conteneur MinIO est servi en HTTP clair.</summary>
-    public static bool MINIO_USE_SSL => GetEnvVarBool("MINIO_USE_SSL", false);
+    public static bool MINIO_USE_SSL => GetEnvVarBool("MINIO_USE_SSL", true);
 
     /// <summary>
     /// URL publique de MinIO utilisée pour signer les liens. Vide = on utilise MINIO_ENDPOINT.

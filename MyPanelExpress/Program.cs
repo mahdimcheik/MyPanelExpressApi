@@ -39,6 +39,7 @@ using (var scope = app.Services.CreateScope())
     await scope.ServiceProvider.GetRequiredService<MainContext>().Database.MigrateAsync();
     await scope.ServiceProvider.GetRequiredService<MinioService>().EnsureBucketAsync();
     await SeedAdminAsync(scope.ServiceProvider);
+    await SeedParametresAsync(scope.ServiceProvider);
 }
 
 ConfigureMiddlewarePipeline(app);
@@ -55,6 +56,7 @@ static void ConfigureServices(IServiceCollection services)
     services.AddTransient<IRealisationService, RealisationService>();
     services.AddTransient<IServiceService, ServiceService>();
     services.AddTransient<IHoraireService, HoraireService>();
+    services.AddTransient<IParametresService, ParametresService>();
     services.AddTransient<MinioService>();
     services.AddTransient<MailService>();
 
@@ -317,6 +319,21 @@ static async Task SeedAdminAsync(IServiceProvider serviceProvider)
     }
 
     logger.LogInformation("Administrateur créé : {Email}", admin.Email);
+}
+
+// Crée la ligne unique des paramètres du site au premier démarrage. Semée à l'exécution plutôt
+// que via HasData : la colonne text[] des téléphones rend le HasData non déterministe (EF réémet
+// la valeur du tableau à chaque build). La garde porte sur "y a-t-il déjà une ligne" : le site
+// n'a qu'un seul jeu de paramètres, que l'administrateur renseigne ensuite depuis le back-office.
+static async Task SeedParametresAsync(IServiceProvider serviceProvider)
+{
+    var context = serviceProvider.GetRequiredService<MainContext>();
+
+    if (await context.Parametres.AnyAsync())
+        return;
+
+    context.Parametres.Add(new Parametres());
+    await context.SaveChangesAsync();
 }
 
 #endregion

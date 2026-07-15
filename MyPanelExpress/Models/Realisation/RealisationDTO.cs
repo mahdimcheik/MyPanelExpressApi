@@ -107,7 +107,8 @@ public class UpdateRealisation
         realisation.Titre = Titre;
         realisation.Description = Description;
         realisation.Categorie = Categorie;
-        realisation.DateRealisation = DateRealisation;
+        // Normalisée en UTC : Npgsql refuse un offset != 0 pour "timestamp with time zone".
+        realisation.DateRealisation = DateRealisation.ToUniversalTime();
         realisation.Visible = Visible;
         realisation.UpdatedAt = DateTimeOffset.UtcNow;
     }

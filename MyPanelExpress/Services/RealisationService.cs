@@ -153,7 +153,9 @@ public class RealisationService(
                 Titre = dto.Titre,
                 Description = dto.Description,
                 Categorie = dto.Categorie,
-                DateRealisation = dto.DateRealisation,
+                // Le client envoie une date avec son offset local (+02:00) ; Npgsql exige
+                // l'offset 0 pour "timestamp with time zone". ToUniversalTime conserve l'instant.
+                DateRealisation = dto.DateRealisation.ToUniversalTime(),
                 Visible = dto.Visible,
                 CreatedAt = DateTimeOffset.UtcNow,
             };
