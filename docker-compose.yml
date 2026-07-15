@@ -1,65 +1,64 @@
 services:
   db:
-    image: postgres:16
-    container_name: mpe-db
-    restart: unless-stopped
+    image: postgres:15
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    container_name: container-db-mypanelexpress
+    restart: always
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "127.0.0.1:${DB_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    networks:
+      - local-network
+      - global-network
 
-  minio:
-    image: minio/minio
-    container_name: mpe-minio
-    restart: unless-stopped
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ACCESSKEY}
-      MINIO_ROOT_PASSWORD: ${MINIO_SECRETKEY}
-    ports:
-      - "127.0.0.1:9000:9000" # API S3
-      - "127.0.0.1:9001:9001" # console web
-    volumes:
-      - minio_data:/data
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Boîte mail de développement : capture les mails du formulaire de contact
-  # sans toucher à un vrai serveur SMTP. Interface : http://localhost:8025
-  mailpit:
-    image: axllent/mailpit
-    container_name: mpe-mailpit
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:1025:1025" # SMTP
-      - "127.0.0.1:8025:8025" # interface web
-
-  pgadmin:
-    image: dpage/pgadmin4
-    container_name: mpe-pgadmin
+  api:
+    image: mahdimcheik/mypanelexpress:latest
+    container_name: container-api
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@admin.com}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-root}
-      PGADMIN_CONFIG_SERVER_MODE: "False"
-    ports:
-      - "127.0.0.1:5050:80"
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS}
+      JWT_KEY: ${JWT_KEY}
+      API_BACK_URL: ${API_BACK_URL}
+      API_FRONT_URL: ${API_FRONT_URL}
+      DB_PORT: ${DB_PORT}
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      TOKEN_VALIDITY_MINUTES: ${TOKEN_VALIDITY_MINUTES}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_LOGIN: ${SMTP_LOGIN}
+      SMTP_KEY: ${SMTP_KEY}
+      SMTP_PORT: ${SMTP_PORT}
+      DO_NO_REPLY_MAIL: ${DO_NO_REPLY_MAIL}
+      MINIO_BUCKETNAME: ${MINIO_BUCKETNAME}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESSKEY: ${MINIO_ACCESSKEY}
+      MINIO_SECRETKEY: ${MINIO_SECRETKEY}
+
+    expose:
+      - 7113
+    networks:
+      - local-network
+      - global-network
     depends_on:
       db:
         condition: service_healthy
 
 volumes:
   postgres_data:
-  minio_data:
+
+networks:
+  local-network:
+    driver: bridge
+  global-network:
+    external: true

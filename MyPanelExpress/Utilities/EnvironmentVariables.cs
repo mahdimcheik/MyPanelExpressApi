@@ -30,7 +30,7 @@ public static class EnvironmentVariables
 
     // auth
     public static string JWT_KEY => GetEnvVar("JWT_KEY", DEV_JWT_KEY);
-    public static string API_BACK_URL => GetEnvVar("API_BACK_URL", "http://localhost:5196");
+    public static string API_BACK_URL => GetEnvVar("API_BACK_URL", "http://localhost:7113");
     public static string API_FRONT_URL => GetEnvVar("API_FRONT_URL", "http://localhost:4200");
     public static int TOKEN_VALIDITY_MINUTES => GetEnvVarInt("TOKEN_VALIDITY_MINUTES", 30);
 
@@ -72,13 +72,6 @@ public static class EnvironmentVariables
     public static bool MINIO_USE_SSL => GetEnvVarBool("MINIO_USE_SSL", true);
 
     /// <summary>
-    /// URL publique de MinIO utilisée pour signer les liens. Vide = on utilise MINIO_ENDPOINT.
-    /// Sert quand l'API parle à MinIO via le réseau Docker (minio:9000) mais que le navigateur
-    /// doit recevoir une URL publique (files.mypanelexpress.com).
-    /// </summary>
-    public static string MINIO_PUBLIC_ENDPOINT => GetEnvVar("MINIO_PUBLIC_ENDPOINT", "");
-
-    /// <summary>
     /// Échoue au démarrage si un secret est resté à sa valeur de développement hors Development.
     /// Sans ce garde-fou, une variable oubliée en production livre silencieusement une API
     /// signée avec une clé publiquement connue et un mot de passe admin par défaut.
@@ -101,7 +94,9 @@ public static class EnvironmentVariables
 
         if (errors.Count > 0)
             throw new InvalidOperationException(
-                "Configuration invalide :" + Environment.NewLine + string.Join(Environment.NewLine, errors)
+                "Configuration invalide :"
+                    + Environment.NewLine
+                    + string.Join(Environment.NewLine, errors)
             );
     }
 }
