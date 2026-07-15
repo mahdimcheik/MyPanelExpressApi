@@ -21,7 +21,7 @@ services:
       - global-network
 
   api:
-    image: mahdimcheik/mypanelexpress:latest
+    image: mahdimcheik/mypanelexpress-api:latest
     container_name: container-api
     restart: unless-stopped
     environment:
