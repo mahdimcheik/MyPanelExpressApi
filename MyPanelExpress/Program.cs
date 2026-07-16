@@ -66,7 +66,10 @@ static void ConfigureServices(IServiceCollection services)
         loggingBuilder.AddConsole();
         loggingBuilder.AddDebug();
         // Masque les requêtes SQL loguées en Information par EF Core, garde warnings/erreurs.
-        loggingBuilder.AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning);
+        loggingBuilder.AddFilter(
+            "Microsoft.EntityFrameworkCore.Database.Command",
+            LogLevel.Warning
+        );
     });
 
     services.AddRouting(opt => opt.LowercaseUrls = true);
@@ -304,7 +307,7 @@ static async Task SeedAdminAsync(IServiceProvider serviceProvider)
         Email = EnvironmentVariables.ADMIN_EMAIL,
         EmailConfirmed = true,
         FirstName = "Admin",
-        LastName = "MyPanelExpress",
+        LastName = "MyPanel.press",
     };
 
     var result = await userManager.CreateAsync(admin, EnvironmentVariables.ADMIN_PASSWORD);
