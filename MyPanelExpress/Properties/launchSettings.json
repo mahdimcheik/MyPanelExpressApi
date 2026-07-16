@@ -22,7 +22,7 @@
         "MINIO_BUCKETNAME": "mypanelexpress",
         "MINIO_ENDPOINT": "files.bonprof.fr",
         "MINIO_ACCESSKEY": "minioadmin",
-        "MINIO_SECRETKEY": "minioadmin",
+        "MINIO_SECRETKEY": "minioadmin1",
         "MINIO_USE_SSL": "true"
       },
       "dotnetRunMessages": true,

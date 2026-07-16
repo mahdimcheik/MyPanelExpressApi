@@ -1,7 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(dotnet build MyPanelExpress --nologo -v q 2>&1)"
+      "PowerShell(dotnet build MyPanelExpress --nologo -v q 2>&1)",
+      "Bash(git rm *)"
     ]
   }
 }
