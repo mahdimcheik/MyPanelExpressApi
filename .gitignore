@@ -13,3 +13,4 @@ artifacts/
 .vs/
 *.user
 *.suo
+Properties/launchSettings.json
