@@ -2,18 +2,18 @@ services:
   db:
     image: postgres:15
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
     container_name: container-db-mypanelexpress
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "127.0.0.1:${POSTGRES_PORT}:5432"
+      - "127.0.0.1:${DB_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -41,11 +41,14 @@ services:
       SMTP_LOGIN: ${SMTP_LOGIN}
       SMTP_KEY: ${SMTP_KEY}
       SMTP_PORT: ${SMTP_PORT}
+      SMTP_SSL: ${SMTP_SSL}
       DO_NO_REPLY_MAIL: ${DO_NO_REPLY_MAIL}
+      CONTACT_RECIPIENT_MAIL: ${CONTACT_RECIPIENT_MAIL}
       MINIO_BUCKETNAME: ${MINIO_BUCKETNAME}
       MINIO_ENDPOINT: ${MINIO_ENDPOINT}
       MINIO_ACCESSKEY: ${MINIO_ACCESSKEY}
       MINIO_SECRETKEY: ${MINIO_SECRETKEY}
+      MINIO_USE_SSL: ${MINIO_USE_SSL}
 
     expose:
       - 7113
