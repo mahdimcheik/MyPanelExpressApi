@@ -43,16 +43,12 @@ public static class ImageProcessing
     }
 
     /// <summary>
-    /// Décode l'image, la redimensionne dans une boîte de maxWidth × maxHeight (sans
-    /// déformation ni recadrage — on garde la photo entière, c'est une galerie de réalisations)
-    /// et la ré-encode en webp. Lève <see cref="UnknownImageFormatException"/> si le flux
-    /// n'est pas une image.
+    /// Décode l'image, la redimensionne pour tenir dans un carré width × height sans
+    /// déformation ni recadrage (on garde la photo entière, c'est une galerie de réalisations),
+    /// puis la centre sur un canevas carré via un remplissage blanc, et enfin la ré-encode
+    /// en webp. Lève <see cref="UnknownImageFormatException"/> si le flux n'est pas une image.
     /// </summary>
-    public static async Task<byte[]> ToWebpAsync(
-        Stream input,
-        int maxWidth = 2000,
-        int maxHeight = 2000
-    )
+    public static async Task<byte[]> ToWebpAsync(Stream input, int width = 800, int height = 800)
     {
         using var image = await Image.LoadAsync(input);
 
@@ -60,8 +56,10 @@ public static class ImageProcessing
             x.Resize(
                 new ResizeOptions
                 {
-                    Size = new Size(maxWidth, maxHeight),
-                    Mode = ResizeMode.Max,
+                    Size = new Size(width, height),
+                    Mode = ResizeMode.Pad,
+                    Position = AnchorPositionMode.Center,
+                    PadColor = Color.White,
                 }
             )
         );
