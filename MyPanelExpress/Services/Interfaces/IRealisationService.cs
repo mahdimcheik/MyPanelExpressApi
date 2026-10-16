@@ -27,7 +27,7 @@ public interface IRealisationService
     Task<Response<RealisationDetails>> SetVisibiliteAsync(Guid id, bool visible);
 
     /// <summary>
-    /// Suppression réelle : la réalisation, ses lignes d'images (cascade) et les objets MinIO
+    /// Suppression réelle : la réalisation, ses lignes d'images (cascade) et les objets du stockage
     /// correspondants. Irréversible — pour retirer temporairement un projet, utiliser
     /// <see cref="SetVisibiliteAsync"/>.
     /// </summary>
@@ -36,7 +36,7 @@ public interface IRealisationService
     /// <summary>Ajoute une ou plusieurs images à la fin de la galerie.</summary>
     Task<Response<RealisationDetails>> AddImagesAsync(Guid id, IList<IFormFile> files);
 
-    /// <summary>Supprime une image : la ligne et l'objet MinIO.</summary>
+    /// <summary>Supprime une image : la ligne et l'objet du stockage.</summary>
     Task<Response<RealisationDetails>> RemoveImageAsync(Guid id, Guid imageId);
 
     /// <summary>Réordonne la galerie. La liste doit couvrir toutes les images de la réalisation.</summary>

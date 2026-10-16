@@ -30,7 +30,7 @@ public class MainContext(DbContextOptions<MainContext> options)
         base.OnModelCreating(builder);
 
         // Suppression réelle des réalisations et des services : les lignes d'images partent avec
-        // le parent. Les objets MinIO correspondants sont retirés par la couche service.
+        // le parent. Les objets du stockage correspondants sont retirés par la couche service.
         builder.Entity<RealisationImage>()
             .HasOne(i => i.Realisation)
             .WithMany(r => r.Images)

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 namespace MyPanelExpress.Models;
 
 /// <summary>
-/// Une image d'un service. <see cref="Url"/> est présignée et remplie à la lecture par le
+/// Une image d'un service. <see cref="Url"/> est publique et remplie à la lecture par le
 /// service : la base ne contient que la clé.
 /// </summary>
 public class ServiceImageDetails

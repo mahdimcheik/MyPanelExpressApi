@@ -6,13 +6,13 @@ using MyPanelExpress.Services.Interfaces;
 namespace MyPanelExpress.Services;
 
 /// <summary>
-/// Gestion des réalisations. La base ne stocke que la clé MinIO de chaque image ; les URL
-/// présignées sont régénérées à chaque lecture (elles expirent au bout de 24 h).
+/// Gestion des réalisations. La base ne stocke que la clé de chaque image dans le stockage
+/// objet ; l'URL publique est calculée à chaque lecture.
 /// </summary>
 public class RealisationService(
     MainContext context,
     IMediaService mediaService,
-    MinioService minioService,
+    StorageService storageService,
     ILogger<RealisationService> logger
 ) : IRealisationService
 {
@@ -29,7 +29,7 @@ public class RealisationService(
                 .OrderByDescending(r => r.DateRealisation)
                 .ToListAsync();
 
-            var details = await ToDetailsAsync(realisations);
+            var details = ToDetails(realisations);
 
             return new Response<List<RealisationDetails>>
             {
@@ -70,7 +70,7 @@ public class RealisationService(
                 .OrderByDescending(r => r.DateRealisation)
                 .ToListAsync();
 
-            var details = await ToDetailsAsync(realisations);
+            var details = ToDetails(realisations);
 
             return new Response<List<RealisationDetails>>
             {
@@ -115,7 +115,7 @@ public class RealisationService(
                 .Take(nombre)
                 .ToListAsync();
 
-            var details = await ToDetailsAsync(realisations);
+            var details = ToDetails(realisations);
 
             return new Response<List<RealisationDetails>>
             {
@@ -203,7 +203,7 @@ public class RealisationService(
             {
                 Status = 200,
                 Message = "Réalisation modifiée avec succès",
-                Data = await ToDetailsAsync(realisation),
+                Data = ToDetails(realisation),
             };
         }
         catch (Exception ex)
@@ -240,7 +240,7 @@ public class RealisationService(
             {
                 Status = 200,
                 Message = visible ? "Réalisation affichée" : "Réalisation masquée",
-                Data = await ToDetailsAsync(realisation),
+                Data = ToDetails(realisation),
             };
         }
         catch (Exception ex)
@@ -276,7 +276,7 @@ public class RealisationService(
             context.Realisations.Remove(realisation);
             await context.SaveChangesAsync();
 
-            // Les objets MinIO ensuite, et par préfixe plutôt que par clé : on ramasse aussi
+            // Les objets du stockage ensuite, et par préfixe plutôt que par clé : on ramasse aussi
             // les fichiers éventuellement orphelins. Un échec ici ne remet pas la réalisation
             // en base — elle est bel et bien supprimée — il ne laisse que des octets inutiles.
             await SupprimerObjetsAsync($"{ModelName}/{TypeImages}/{id}", id);
@@ -335,7 +335,7 @@ public class RealisationService(
                 if (upload.Status != 200 || upload.Data is null)
                 {
                     // Un fichier refusé annule tout le lot : on retire ce qui vient de partir
-                    // sur MinIO pour ne pas laisser d'objets sans ligne en base.
+                    // sur le stockage pour ne pas laisser d'objets sans ligne en base.
                     await SupprimerObjetsAsync(envoyees, id);
 
                     return new Response<RealisationDetails>
@@ -372,7 +372,7 @@ public class RealisationService(
             {
                 Status = 200,
                 Message = files.Count > 1 ? "Images ajoutées avec succès" : "Image ajoutée avec succès",
-                Data = await ToDetailsAsync(realisation),
+                Data = ToDetails(realisation),
             };
         }
         catch (Exception ex)
@@ -430,7 +430,7 @@ public class RealisationService(
             {
                 Status = 200,
                 Message = "Image supprimée avec succès",
-                Data = await ToDetailsAsync(realisation),
+                Data = ToDetails(realisation),
             };
         }
         catch (Exception ex)
@@ -489,7 +489,7 @@ public class RealisationService(
             {
                 Status = 200,
                 Message = "Ordre des images mis à jour",
-                Data = await ToDetailsAsync(realisation),
+                Data = ToDetails(realisation),
             };
         }
         catch (Exception ex)
@@ -523,7 +523,7 @@ public class RealisationService(
             {
                 Status = 200,
                 Message = "Réalisation récupérée avec succès",
-                Data = await ToDetailsAsync(realisation),
+                Data = ToDetails(realisation),
             };
         }
         catch (Exception ex)
@@ -547,33 +547,33 @@ public class RealisationService(
             Data = null,
         };
 
-    /// <summary>Construit le DTO et signe l'URL de chaque image.</summary>
-    private async Task<RealisationDetails> ToDetailsAsync(Realisation realisation)
+    /// <summary>Construit le DTO et calcule l'URL publique de chaque image.</summary>
+    private RealisationDetails ToDetails(Realisation realisation)
     {
         var details = new RealisationDetails(realisation);
 
         foreach (var image in details.Images)
         {
-            image.Url = await minioService.GetFileUrlAsync(image.ObjectKey);
+            image.Url = storageService.Url(image.ObjectKey);
         }
 
         return details;
     }
 
-    private async Task<List<RealisationDetails>> ToDetailsAsync(List<Realisation> realisations)
+    private List<RealisationDetails> ToDetails(List<Realisation> realisations)
     {
         var details = new List<RealisationDetails>(realisations.Count);
 
         foreach (var realisation in realisations)
         {
-            details.Add(await ToDetailsAsync(realisation));
+            details.Add(ToDetails(realisation));
         }
 
         return details;
     }
 
     /// <summary>
-    /// Retire des objets de MinIO sans faire échouer l'opération appelante : la base fait foi.
+    /// Retire des objets du stockage sans faire échouer l'opération appelante : la base fait foi.
     /// Un objet resté en place n'est qu'un fichier inutile, et il est tracé dans les logs.
     /// </summary>
     private async Task SupprimerObjetsAsync(IEnumerable<string> keys, Guid id)
@@ -582,13 +582,13 @@ public class RealisationService(
         {
             try
             {
-                await minioService.RemoveFileAsync(key);
+                await storageService.RemoveFileAsync(key);
             }
             catch (Exception ex)
             {
                 logger.LogWarning(
                     ex,
-                    "Objet MinIO {Key} non supprimé pour la réalisation {Id} : fichier orphelin",
+                    "Objet {Key} non supprimé pour la réalisation {Id} : fichier orphelin",
                     key,
                     id
                 );
@@ -601,14 +601,14 @@ public class RealisationService(
     {
         try
         {
-            var keys = await minioService.ListAllFilesAsync(prefix);
+            var keys = await storageService.ListAllFilesAsync(prefix);
             await SupprimerObjetsAsync(keys, id);
         }
         catch (Exception ex)
         {
             logger.LogWarning(
                 ex,
-                "Images de la réalisation {Id} non listées sur MinIO : fichiers orphelins sous {Prefix}",
+                "Images de la réalisation {Id} non listées sur le stockage : fichiers orphelins sous {Prefix}",
                 id,
                 prefix
             );

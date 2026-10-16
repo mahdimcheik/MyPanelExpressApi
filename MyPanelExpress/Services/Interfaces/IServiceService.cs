@@ -28,7 +28,7 @@ public interface IServiceService
     Task<Response<ServiceDetails>> SetVisibiliteAsync(Guid id, bool visible);
 
     /// <summary>
-    /// Suppression réelle : le service, ses lignes d'images (cascade) et les objets MinIO
+    /// Suppression réelle : le service, ses lignes d'images (cascade) et les objets du stockage
     /// correspondants. Irréversible — pour retirer temporairement une fiche, utiliser
     /// <see cref="SetVisibiliteAsync"/>.
     /// </summary>
@@ -37,7 +37,7 @@ public interface IServiceService
     /// <summary>Ajoute une ou plusieurs images à la fin de la galerie.</summary>
     Task<Response<ServiceDetails>> AddImagesAsync(Guid id, IList<IFormFile> files);
 
-    /// <summary>Supprime une image : la ligne et l'objet MinIO.</summary>
+    /// <summary>Supprime une image : la ligne et l'objet du stockage.</summary>
     Task<Response<ServiceDetails>> RemoveImageAsync(Guid id, Guid imageId);
 
     /// <summary>Réordonne la galerie. La liste doit couvrir toutes les images du service.</summary>

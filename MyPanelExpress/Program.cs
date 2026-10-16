@@ -1,6 +1,8 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using Amazon.Runtime;
+using Amazon.S3;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -37,7 +39,8 @@ app.UseForwardedHeaders(
 using (var scope = app.Services.CreateScope())
 {
     await scope.ServiceProvider.GetRequiredService<MainContext>().Database.MigrateAsync();
-    await scope.ServiceProvider.GetRequiredService<MinioService>().EnsureBucketAsync();
+    if (app.Environment.IsDevelopment())
+        await scope.ServiceProvider.GetRequiredService<StorageService>().EnsureBucketAsync();
     await SeedAdminAsync(scope.ServiceProvider);
     await SeedParametresAsync(scope.ServiceProvider);
 }
@@ -57,7 +60,23 @@ static void ConfigureServices(IServiceCollection services)
     services.AddTransient<IServiceService, ServiceService>();
     services.AddTransient<IHoraireService, HoraireService>();
     services.AddTransient<IParametresService, ParametresService>();
-    services.AddTransient<MinioService>();
+    services.AddSingleton<IAmazonS3>(_ => new AmazonS3Client(
+        new BasicAWSCredentials(EnvironmentVariables.S3_ACCESS_KEY, EnvironmentVariables.S3_SECRET_KEY),
+        new AmazonS3Config
+        {
+            ServiceURL = EnvironmentVariables.S3_UPLOAD_URL,
+            AuthenticationRegion = EnvironmentVariables.S3Region,
+            ForcePathStyle = true,
+            UseHttp = EnvironmentVariables.S3_UPLOAD_URL.StartsWith(
+                "http://",
+                StringComparison.OrdinalIgnoreCase
+            ),
+            // OVH refuse les sommes de contrôle CRC que le SDK v4 envoie par défaut.
+            RequestChecksumCalculation = RequestChecksumCalculation.WHEN_REQUIRED,
+            ResponseChecksumValidation = ResponseChecksumValidation.WHEN_REQUIRED,
+        }
+    ));
+    services.AddSingleton<StorageService>();
     services.AddTransient<MailService>();
 
     services.AddLogging(loggingBuilder =>

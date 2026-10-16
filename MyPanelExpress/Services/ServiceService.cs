@@ -7,12 +7,12 @@ namespace MyPanelExpress.Services;
 
 /// <summary>
 /// Gestion des services (les prestations). Même fonctionnement que les réalisations : la base
-/// ne stocke que la clé MinIO de chaque image, l'URL présignée est régénérée à la lecture.
+/// ne stocke que la clé de chaque image, l'URL publique est calculée à la lecture.
 /// </summary>
 public class ServiceService(
     MainContext context,
     IMediaService mediaService,
-    MinioService minioService,
+    StorageService storageService,
     ILogger<ServiceService> logger
 ) : IServiceService
 {
@@ -30,7 +30,7 @@ public class ServiceService(
                 .ThenBy(s => s.Nom)
                 .ToListAsync();
 
-            var details = await ToDetailsAsync(services);
+            var details = ToDetails(services);
 
             return new Response<List<ServiceDetails>>
             {
@@ -65,7 +65,7 @@ public class ServiceService(
                 .ThenBy(s => s.Nom)
                 .ToListAsync();
 
-            var details = await ToDetailsAsync(services);
+            var details = ToDetails(services);
 
             return new Response<List<ServiceDetails>>
             {
@@ -150,7 +150,7 @@ public class ServiceService(
             {
                 Status = 200,
                 Message = "Service modifié avec succès",
-                Data = await ToDetailsAsync(service),
+                Data = ToDetails(service),
             };
         }
         catch (Exception ex)
@@ -187,7 +187,7 @@ public class ServiceService(
             {
                 Status = 200,
                 Message = visible ? "Service affiché" : "Service masqué",
-                Data = await ToDetailsAsync(service),
+                Data = ToDetails(service),
             };
         }
         catch (Exception ex)
@@ -223,7 +223,7 @@ public class ServiceService(
             context.Services.Remove(service);
             await context.SaveChangesAsync();
 
-            // Les objets MinIO ensuite, par préfixe : on ramasse aussi les fichiers orphelins.
+            // Les objets du stockage ensuite, par préfixe : on ramasse aussi les fichiers orphelins.
             await SupprimerObjetsAsync($"{ModelName}/{TypeImages}/{id}", id);
 
             return new Response<object>
@@ -316,7 +316,7 @@ public class ServiceService(
             {
                 Status = 200,
                 Message = files.Count > 1 ? "Images ajoutées avec succès" : "Image ajoutée avec succès",
-                Data = await ToDetailsAsync(service),
+                Data = ToDetails(service),
             };
         }
         catch (Exception ex)
@@ -373,7 +373,7 @@ public class ServiceService(
             {
                 Status = 200,
                 Message = "Image supprimée avec succès",
-                Data = await ToDetailsAsync(service),
+                Data = ToDetails(service),
             };
         }
         catch (Exception ex)
@@ -429,7 +429,7 @@ public class ServiceService(
             {
                 Status = 200,
                 Message = "Ordre des images mis à jour",
-                Data = await ToDetailsAsync(service),
+                Data = ToDetails(service),
             };
         }
         catch (Exception ex)
@@ -463,7 +463,7 @@ public class ServiceService(
             {
                 Status = 200,
                 Message = "Service récupéré avec succès",
-                Data = await ToDetailsAsync(service),
+                Data = ToDetails(service),
             };
         }
         catch (Exception ex)
@@ -487,33 +487,33 @@ public class ServiceService(
             Data = null,
         };
 
-    /// <summary>Construit le DTO et signe l'URL de chaque image.</summary>
-    private async Task<ServiceDetails> ToDetailsAsync(Service service)
+    /// <summary>Construit le DTO et calcule l'URL publique de chaque image.</summary>
+    private ServiceDetails ToDetails(Service service)
     {
         var details = new ServiceDetails(service);
 
         foreach (var image in details.Images)
         {
-            image.Url = await minioService.GetFileUrlAsync(image.ObjectKey);
+            image.Url = storageService.Url(image.ObjectKey);
         }
 
         return details;
     }
 
-    private async Task<List<ServiceDetails>> ToDetailsAsync(List<Service> services)
+    private List<ServiceDetails> ToDetails(List<Service> services)
     {
         var details = new List<ServiceDetails>(services.Count);
 
         foreach (var service in services)
         {
-            details.Add(await ToDetailsAsync(service));
+            details.Add(ToDetails(service));
         }
 
         return details;
     }
 
     /// <summary>
-    /// Retire des objets de MinIO sans faire échouer l'opération appelante : la base fait foi.
+    /// Retire des objets du stockage sans faire échouer l'opération appelante : la base fait foi.
     /// Un objet resté en place n'est qu'un fichier inutile, et il est tracé dans les logs.
     /// </summary>
     private async Task SupprimerObjetsAsync(IEnumerable<string> keys, Guid id)
@@ -522,13 +522,13 @@ public class ServiceService(
         {
             try
             {
-                await minioService.RemoveFileAsync(key);
+                await storageService.RemoveFileAsync(key);
             }
             catch (Exception ex)
             {
                 logger.LogWarning(
                     ex,
-                    "Objet MinIO {Key} non supprimé pour le service {Id} : fichier orphelin",
+                    "Objet {Key} non supprimé pour le service {Id} : fichier orphelin",
                     key,
                     id
                 );
@@ -541,14 +541,14 @@ public class ServiceService(
     {
         try
         {
-            var keys = await minioService.ListAllFilesAsync(prefix);
+            var keys = await storageService.ListAllFilesAsync(prefix);
             await SupprimerObjetsAsync(keys, id);
         }
         catch (Exception ex)
         {
             logger.LogWarning(
                 ex,
-                "Images du service {Id} non listées sur MinIO : fichiers orphelins sous {Prefix}",
+                "Images du service {Id} non listées sur le stockage : fichiers orphelins sous {Prefix}",
                 id,
                 prefix
             );

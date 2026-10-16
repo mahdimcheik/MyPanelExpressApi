@@ -114,8 +114,8 @@ public class RealisationsController(IRealisationService realisationService) : Co
     }
 
     /// <summary>
-    /// Supprime définitivement une réalisation, ses images et les fichiers correspondants sur
-    /// MinIO. Irréversible : pour retirer temporairement un projet du site, utiliser PATCH
+    /// Supprime définitivement une réalisation, ses images et les fichiers correspondants du
+    /// stockage. Irréversible : pour retirer temporairement un projet du site, utiliser PATCH
     /// {id}/visibilite.
     /// </summary>
     [HttpDelete("{id:guid}")]
@@ -138,7 +138,7 @@ public class RealisationsController(IRealisationService realisationService) : Co
         return StatusCode(response.Status, response);
     }
 
-    /// <summary>Supprime une image de la galerie, et le fichier sur MinIO.</summary>
+    /// <summary>Supprime une image de la galerie, et le fichier du stockage.</summary>
     [HttpDelete("{id:guid}/images/{imageId:guid}")]
     public async Task<ActionResult<Response<RealisationDetails>>> RemoveImage(Guid id, Guid imageId)
     {

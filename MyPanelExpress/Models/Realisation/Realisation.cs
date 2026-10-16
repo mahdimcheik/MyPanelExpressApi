@@ -41,8 +41,8 @@ public class Realisation : BaseModel
 public class RealisationImage : BaseModel
 {
     /// <summary>
-    /// Clé de l'objet MinIO, jamais l'URL : les liens présignés expirent au bout de 24 h et
-    /// sont régénérés à la lecture par MediaService.
+    /// Clé de l'objet dans le stockage, jamais l'URL : l'URL publique est calculée à la
+    /// lecture par StorageService, pour pouvoir changer de domaine ou de CDN.
     /// </summary>
     [Required]
     [MaxLength(512)]

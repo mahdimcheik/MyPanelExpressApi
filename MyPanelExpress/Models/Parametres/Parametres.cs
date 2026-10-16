@@ -25,7 +25,7 @@ public class Parametres : BaseModel
     [MaxLength(200)]
     public string Email { get; set; } = string.Empty;
 
-    /// <summary>Clé de l'objet MinIO du logo. Renseigné par un flux d'upload ultérieur.</summary>
+    /// <summary>Clé de l'objet du logo dans le stockage. Renseigné par un flux d'upload ultérieur.</summary>
     [MaxLength(512)]
     public string? Logo { get; set; }
 

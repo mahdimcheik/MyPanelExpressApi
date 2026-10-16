@@ -6,10 +6,10 @@ using SixLabors.ImageSharp;
 namespace MyPanelExpress.Services;
 
 /// <summary>
-/// Pipeline d'images : validation, conversion en webp, envoi sur MinIO. La base ne stocke
-/// que la clé de l'objet ; l'URL présignée est régénérée à chaque lecture.
+/// Pipeline d'images : validation, conversion en webp, envoi sur le stockage objet. La base
+/// ne stocke que la clé de l'objet ; l'URL publique est calculée à chaque lecture.
 /// </summary>
-public class MediaService(MinioService minioService, ILogger<MediaService> logger) : IMediaService
+public class MediaService(StorageService storageService, ILogger<MediaService> logger) : IMediaService
 {
     public async Task<Response<MediaDetails>> UploadImageAsync(
         IFormFile file,
@@ -49,13 +49,13 @@ public class MediaService(MinioService minioService, ILogger<MediaService> logge
             }
 
             var key = ImageProcessing.BuildObjectKey(modelName, type, id);
-            await minioService.UploadBytesAsync(key, webp, "image/webp");
+            await storageService.UploadBytesAsync(key, webp, "image/webp");
 
             return new Response<MediaDetails>
             {
                 Status = 200,
                 Message = "Image envoyée avec succès",
-                Data = new MediaDetails { Key = key, Url = await minioService.GetFileUrlAsync(key) },
+                Data = new MediaDetails { Key = key, Url = storageService.Url(key) },
             };
         }
         catch (Exception ex)
@@ -75,7 +75,17 @@ public class MediaService(MinioService minioService, ILogger<MediaService> logge
     {
         try
         {
-            if (!await minioService.DoesFileExistsAsync(key))
+            if (!StorageService.IsValidKey(key))
+            {
+                return new Response<MediaDetails>
+                {
+                    Status = 400,
+                    Message = "Clé de fichier invalide",
+                    Data = null,
+                };
+            }
+
+            if (!await storageService.DoesFileExistsAsync(key))
             {
                 return new Response<MediaDetails>
                 {
@@ -89,7 +99,7 @@ public class MediaService(MinioService minioService, ILogger<MediaService> logge
             {
                 Status = 200,
                 Message = "URL générée avec succès",
-                Data = new MediaDetails { Key = key, Url = await minioService.GetFileUrlAsync(key) },
+                Data = new MediaDetails { Key = key, Url = storageService.Url(key) },
             };
         }
         catch (Exception ex)
@@ -109,7 +119,17 @@ public class MediaService(MinioService minioService, ILogger<MediaService> logge
     {
         try
         {
-            await minioService.RemoveFileAsync(key);
+            if (!StorageService.IsValidKey(key))
+            {
+                return new Response<object>
+                {
+                    Status = 400,
+                    Message = "Clé de fichier invalide",
+                    Data = null,
+                };
+            }
+
+            await storageService.RemoveFileAsync(key);
 
             return new Response<object>
             {

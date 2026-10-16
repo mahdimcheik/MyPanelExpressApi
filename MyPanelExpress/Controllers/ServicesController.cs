@@ -97,7 +97,7 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
     }
 
     /// <summary>
-    /// Supprime définitivement un service, ses images et les fichiers correspondants sur MinIO.
+    /// Supprime définitivement un service, ses images et les fichiers correspondants du stockage.
     /// Irréversible : pour retirer temporairement une fiche du site, utiliser PATCH
     /// {id}/visibilite.
     /// </summary>
@@ -121,7 +121,7 @@ public class ServicesController(IServiceService serviceService) : ControllerBase
         return StatusCode(response.Status, response);
     }
 
-    /// <summary>Supprime une image de la galerie, et le fichier sur MinIO.</summary>
+    /// <summary>Supprime une image de la galerie, et le fichier du stockage.</summary>
     [HttpDelete("{id:guid}/images/{imageId:guid}")]
     public async Task<ActionResult<Response<ServiceDetails>>> RemoveImage(Guid id, Guid imageId)
     {

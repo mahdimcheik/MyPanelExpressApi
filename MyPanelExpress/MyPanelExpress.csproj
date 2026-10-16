@@ -29,7 +29,7 @@
     <!-- Swashbuckle pinned to 7.x. It compiles against Microsoft.OpenApi 1.6.x; adding
          Microsoft.AspNetCore.OpenApi (which pulls Microsoft.OpenApi 2.x) breaks the build. -->
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.3.2" />
-    <PackageReference Include="Minio" Version="6.0.5" />
+    <PackageReference Include="AWSSDK.S3" Version="4.0.101.5" />
     <PackageReference Include="RazorLight" Version="2.3.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageReference Include="DotNetEnv" Version="3.1.1" />

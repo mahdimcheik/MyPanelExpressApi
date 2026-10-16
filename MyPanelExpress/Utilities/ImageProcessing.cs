@@ -70,7 +70,7 @@ public static class ImageProcessing
         return output.ToArray();
     }
 
-    /// <summary>Clé d'objet MinIO : {modelName}/{type}/{id}/{guid}.webp</summary>
+    /// <summary>Clé d'objet : {modelName}/{type}/{id}/{guid}.webp</summary>
     public static string BuildObjectKey(string modelName, string type, Guid id) =>
         $"{modelName}/{type}/{id}/{Guid.NewGuid():N}.webp";
 }

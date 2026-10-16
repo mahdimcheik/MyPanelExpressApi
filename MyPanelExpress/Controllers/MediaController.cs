@@ -50,7 +50,7 @@ public class MediaController(IMediaService mediaService) : ControllerBase
         return StatusCode(response.Status, response);
     }
 
-    /// <summary>Régénère une URL présignée à partir d'une clé stockée en base.</summary>
+    /// <summary>Calcule l'URL publique à partir d'une clé stockée en base.</summary>
     [HttpGet("url")]
     public async Task<ActionResult<Response<MediaDetails>>> GetUrl([FromQuery] string key)
     {

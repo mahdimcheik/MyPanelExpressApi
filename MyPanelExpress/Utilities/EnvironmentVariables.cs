@@ -61,15 +61,35 @@ public static class EnvironmentVariables
     public static string CONTACT_RECIPIENT_MAIL =>
         GetEnvVar("CONTACT_RECIPIENT_MAIL", "contact@mypanelexpress.com");
 
-    // minio
-    public const string DEV_MINIO_SECRETKEY = "dev-only-minio-secret-change-me";
-    public static string MINIO_ENDPOINT => GetEnvVar("MINIO_ENDPOINT", "files.bonprof.fr");
-    public static string MINIO_BUCKETNAME => GetEnvVar("MINIO_BUCKETNAME", "mypanelexpress");
-    public static string MINIO_ACCESSKEY => GetEnvVar("MINIO_ACCESSKEY", "minioadmin");
-    public static string MINIO_SECRETKEY => GetEnvVar("MINIO_SECRETKEY", DEV_MINIO_SECRETKEY);
+    // Stockage objet : un compartiment compatible S3 (OVH Object Storage, MinIO en local).
+    // S3_UPLOAD_URL est l'endpoint S3 (https://s3.<région>.io.cloud.ovh.net).
+    public const string DEV_S3_SECRET_KEY = "minioadmin";
+    public static string S3_UPLOAD_URL => GetEnvVar("S3_UPLOAD_URL", "http://localhost:9000");
 
-    /// <summary>Faux en local : le conteneur MinIO est servi en HTTP clair.</summary>
-    public static bool MINIO_USE_SSL => GetEnvVarBool("MINIO_USE_SSL", true);
+    /// <summary>
+    /// Base de lecture publique, sans slash final : l'URL publique du compartiment donnée par
+    /// OVH (https://&lt;bucket&gt;.s3.&lt;région&gt;.io.cloud.ovh.net) ou un CDN devant lui.
+    /// </summary>
+    public static string S3_PUBLIC_URL =>
+        GetEnvVar("S3_PUBLIC_URL", "http://localhost:9000/mypanelexpress");
+    public static string S3_BUCKET => GetEnvVar("S3_BUCKET", "mypanelexpress");
+    public static string S3_ACCESS_KEY => GetEnvVar("S3_ACCESS_KEY", "minioadmin");
+    public static string S3_SECRET_KEY => GetEnvVar("S3_SECRET_KEY", DEV_S3_SECRET_KEY);
+
+    /// <summary>
+    /// Région de signature SigV4, déduite de l'endpoint OVH (s3.gra.io.cloud.ovh.net → gra) ;
+    /// us-east-1 pour tout autre hôte (MinIO).
+    /// </summary>
+    public static string S3Region
+    {
+        get
+        {
+            var host = new Uri(S3_UPLOAD_URL).Host;
+            return host.StartsWith("s3.") && host.EndsWith(".cloud.ovh.net")
+                ? host.Split('.')[1]
+                : "us-east-1";
+        }
+    }
 
     /// <summary>
     /// Échoue au démarrage si un secret est resté à sa valeur de développement hors Development.
@@ -89,8 +109,8 @@ public static class EnvironmentVariables
         if (string.IsNullOrWhiteSpace(ADMIN_PASSWORD) || ADMIN_PASSWORD == DEV_ADMIN_PASSWORD)
             errors.Add("ADMIN_PASSWORD n'est pas défini (ou utilise la valeur de développement).");
 
-        if (string.IsNullOrWhiteSpace(MINIO_SECRETKEY) || MINIO_SECRETKEY == DEV_MINIO_SECRETKEY)
-            errors.Add("MINIO_SECRETKEY n'est pas défini (ou utilise la valeur de développement).");
+        if (string.IsNullOrWhiteSpace(S3_SECRET_KEY) || S3_SECRET_KEY == DEV_S3_SECRET_KEY)
+            errors.Add("S3_SECRET_KEY n'est pas défini (ou utilise la valeur de développement).");
 
         if (errors.Count > 0)
             throw new InvalidOperationException(

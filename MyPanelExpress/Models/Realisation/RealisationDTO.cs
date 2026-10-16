@@ -4,7 +4,7 @@ namespace MyPanelExpress.Models;
 
 /// <summary>
 /// Une image d'une réalisation, telle qu'elle est renvoyée au client. <see cref="Url"/> est
-/// présignée et n'est pas stockée en base : c'est le service qui la remplit à la lecture.
+/// publique et n'est pas stockée en base : c'est le service qui la remplit à la lecture.
 /// </summary>
 public class RealisationImageDetails
 {
